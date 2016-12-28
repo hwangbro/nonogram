@@ -276,6 +276,8 @@ class NonogramApplication:
 					box = self._board._boxes[row][col]
 					self._xmode = not box.x()
 					box.switch_x()
+					if box.filled():
+						box.switch()
 					self._BoardGUI._draw_board()
 
 	def _on_rclick_held(self, event: tk.Event):
@@ -291,6 +293,9 @@ class NonogramApplication:
 					box = self._board._boxes[row][col]
 					if box.x() != self._xmode:
 						 box.switch_x()
+					if box.x():
+						if box.filled():
+							box.switch()
 					self._BoardGUI._draw_board()
 			
 	def _on_button_down(self, event: tk.Event):
