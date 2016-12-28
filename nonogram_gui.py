@@ -41,6 +41,7 @@ class BoxGUI:
 				point_pixels[1][1],
 				fill = 'white')
 
+
 	def fill(self, canvas: tk.Canvas):
 		canvas.itemconfig(self._rect, fill = 'black')
 		self._filled = True
@@ -50,9 +51,13 @@ class BoxGUI:
 		self._filled = False
 	
 	def x(self, canvas: tk.Canvas):
-		canvas.create_line(self._tl_x, self._tl_y, self._br_x, self._br_y)
-		canvas.create_line(self._tl_x, self._br_y, self._br_x, self._tl_y)
-
+		width = canvas.winfo_width()
+		height = canvas.winfo_height()
+		point_pixels = []
+		tl_x, tl_y = self._tl.pixel(width, height)
+		br_x, br_y = self._br.pixel(width, height)		
+		canvas.create_line(tl_x, tl_y, br_x, br_y, width = 3)
+		canvas.create_line(tl_x, br_y, br_x, tl_y, width = 3)
 class InstructionGUI(BoxGUI):
 	'''GUI for instruction'''
 	
