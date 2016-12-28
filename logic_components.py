@@ -7,6 +7,7 @@ class Box:
 		self._row = row
 		self._col = col
 		self._filled = False
+		self._x = False
 
 	def row(self):
 		return self._row
@@ -19,6 +20,12 @@ class Box:
 
 	def switch(self):
 		self._filled = not self._filled
+
+	def x(self):
+		return self._x
+
+	def switch_x(self):
+		self._x = not self._x
 
 	def __str__(self):
 		return "X" if self._filled else "O"

@@ -48,7 +48,10 @@ class BoxGUI:
 	def unfill(self, canvas: tk.Canvas):
 		canvas.itemconfig(self._rect, fill = 'white')
 		self._filled = False
-
+	
+	def x(self, canvas: tk.Canvas):
+		canvas.create_line(self._tl_x, self._tl_y, self._br_x, self._br_y)
+		canvas.create_line(self._tl_x, self._br_y, self._br_x, self._tl_y)
 
 class InstructionGUI(BoxGUI):
 	'''GUI for instruction'''
@@ -156,7 +159,9 @@ class NonogramGUI:
 				cell.draw(self._canvas,
 					create_box_points(row, col, self._rows, self._cols))
 				cell.unfill(self._canvas)
-				if self._board._boxes[i][j].filled():
+				if self._board._boxes[i][j].x():
+					cell.x(self._canvas)
+				elif self._board._boxes[i][j].filled():
 					cell.fill(self._canvas)
 
 	def _draw_lines(self):
@@ -247,10 +252,42 @@ class NonogramApplication:
 		self._BoardGUI._canvas.bind('<Configure>', self._on_canvas_resized)
 		self._BoardGUI._canvas.bind('<Button-1>', self._on_button_down)
 		self._BoardGUI._canvas.bind('<B1-Motion>', self._on_mouse_moved)
-
+		self._BoardGUI._canvas.bind('<Button-3>', self._on_rclick_down)
+		self._BoardGUI._canvas.bind('<B3-Motion>', self._on_rclick_held)
 	def _on_canvas_resized(self, event: tk.Event):
 		self._BoardGUI._draw_board()
 
+
+	def _on_rclick_down(self, event: tk.Event):
+		if self._stop:
+			return
+
+		click_point = point.from_pixel(event.x, event.y, self._BoardGUI.width, self._BoardGUI.height)
+
+		for row in range(len(self._BoardGUI._tiles)):
+			for col in range(len(self._BoardGUI._tiles[row])):
+				tile = self._BoardGUI._tiles[row][col]
+				if tile.contains(click_point) and type(tile) is BoxGUI:
+					box = self._board._boxes[row][col]
+					self._xmode = not box.x()
+					box.switch_x()
+					self._BoardGUI._draw_board()
+
+	def _on_rclick_held(self, event: tk.Event):
+		if self._stop:
+			return
+
+		click_point = point.from_pixel(event.x, event.y, self._BoardGUI.width, self._BoardGUI.height)
+
+		for row in range(len(self._BoardGUI._tiles)):
+			for col in range(len(self._BoardGUI._tiles[row])):
+				tile = self._BoardGUI._tiles[row][col]
+				if tile.contains(click_point) and type(tile) is BoxGUI:
+					box = self._board._boxes[row][col]
+					if box.x() != self._xmode:
+						 box.switch_x()
+					self._BoardGUI._draw_board()
+			
 	def _on_button_down(self, event: tk.Event):
 		if self._stop:
 			return
