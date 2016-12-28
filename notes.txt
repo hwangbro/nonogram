@@ -1,0 +1,62 @@
+Monigram (nonogram)
+
+Option Screen:
+
+Choose between two nonograms to solve
+close
+
+small image in bottom right that shows some christmas/ily msg
+
+
+
+
+game screen
+
+
+main puzzle
+option to close
+option to go to other puzzle
+check solution button (presents "not solved" or "solved")
+same image in bottom right
+
+
+
+
+how the game should interact
+
+click a box (left click) = fill. click again unfills
+boundaries all drawn out.
+
+
+inside canvas, entire thing is made up of tiles.
+tiles for the instructions, as well as the game board.
+class for different tiles, one for clickable, one for not
+
+imagine huge grid of tiles
+the clickable grid doesn't start until 
+	largest instr from row, largest instr from col
+for ex, if biggest instr from row is 4, biggest from col is 6
+	clickable grid (0,0) starts at (6,4) 
+
+
+use create_text and middlel coordinates of box for instructions
+probably have instruction box inhereit from boxgui
+overwrite draw method so that the lines are drawn top/bot or left/right
+
+
+finished so far:
+	proper printing / click feature to turn on off
+	finish click and drag
+	finished making 5th line bold
+
+need to add:
+	check solution / add button
+	work on spcaing. make instructions take less room
+		maybe change format so it's one line of text
+		instead of several boxes
+
+
+	maybe add image to top left
+	work on option screen
+
+	come up with better color scheme
