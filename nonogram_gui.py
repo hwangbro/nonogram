@@ -5,100 +5,79 @@ import boards
 import options_gui
 
 
-old_bg_color = '#364E97'
-
 title_color = 'SkyBlue3'
 
 text_color = 'lightgoldenrod1'
 
+fill_color = 'black'
+blank_color = 'white'
+
 class BoxGUI:
 	'''GUI for box'''
 
-	def __init__(self, row: int, col: int):
+	def __init__(self, row: int, col: int) -> None:
 		self._row = row
 		self._col = col
 		self._tl, self._br = None,None
 		self._filled = False
 
-	def contains(self, p: point.Point):
+	def contains(self, p: point.Point) -> (point.Point):
 		px,py = p.frac()
-		return (px <= self._br_x and px >= self._tl_x) and (py <= self._br_y and py >= self._tl_y)
+		tl_x, tl_y = self._tl.frac()
+		br_x, br_y = self._br.frac()
+		return (px <= br_x and px >= tl_x) and (py <= br_y and py >= tl_y)
 	
-	def draw(self, canvas: tk.Canvas, points):
+	def draw(self, canvas: tk.Canvas, points) -> None:
 		self._tl, self._br = points
-		self._tl_x, self._tl_y = self._tl.frac()
-		self._br_x, self._br_y = self._br.frac()
 		
 		width = canvas.winfo_width()
 		height = canvas.winfo_height()
-		point_pixels = []
-		for point in points:
-			point_pixels.append(point.pixel(width,height))
+		self._tl_x, self._tl_y = self._tl.pixel(width, height)
+		self._br_x, self._br_y = self._br.pixel(width, height)
 
-		self._rect = canvas.create_rectangle(point_pixels[0][0],
-				point_pixels[0][1],
-				point_pixels[1][0],
-				point_pixels[1][1],
-				fill = 'white')
+		self._rect = canvas.create_rectangle(self._tl_x, self._tl_y,
+							self._br_x, self._br_y,
+							fill = blank_color)
 
-
-	def fill(self, canvas: tk.Canvas):
-		canvas.itemconfig(self._rect, fill = 'black')
+	def fill(self, canvas: tk.Canvas) -> None:
+		canvas.itemconfig(self._rect, fill = fill_color)
 		self._filled = True
 
-	def unfill(self, canvas: tk.Canvas):
-		canvas.itemconfig(self._rect, fill = 'white')
+	def unfill(self, canvas: tk.Canvas) -> None:
+		canvas.itemconfig(self._rect, fill = blank_color)
 		self._filled = False
 	
-	def x(self, canvas: tk.Canvas):
-		width = canvas.winfo_width()
-		height = canvas.winfo_height()
-		point_pixels = []
-		tl_x, tl_y = self._tl.pixel(width, height)
-		br_x, br_y = self._br.pixel(width, height)		
-		canvas.create_line(tl_x, tl_y, br_x, br_y, width = 3)
-		canvas.create_line(tl_x, br_y, br_x, tl_y, width = 3)
+	def x(self, canvas: tk.Canvas) -> None:
+		canvas.create_line(self._tl_x, self._tl_y, self._br_x, self._br_y, width = 3)
+		canvas.create_line(self._tl_x, self._br_y, self._br_x, self._tl_y, width = 3)
+
+
 class InstructionGUI(BoxGUI):
 	'''GUI for instruction'''
 	
-	def __init__(self, row: int, col: int, pos: str):
+	def __init__(self, row: int, col: int, pos: str) -> None:
 		#pos is 'r' for row, 'c' for col
 		super().__init__(row,col)
 		self._pos = pos
 
-	def draw(self, canvas: tk.Canvas, points, instr: int):
+	def draw(self, canvas: tk.Canvas, points, instr: int) -> None:
 		self._tl, self._br = points
-		self._tl_x, self._tl_y = self._tl.frac()
-		self._br_x, self._br_y = self._br.frac()
 
 		width = canvas.winfo_width()
 		height = canvas.winfo_height()
-		point_pixels = []
 
-		for point in points:
-			point_pixels.append(point.pixel(width,height))
+		tl_x, tl_y = self._tl.pixel(width, height)
+		br_x, br_y = self._br.pixel(width, height)
 
 		if self._pos == 'r':
-			canvas.create_line(point_pixels[0][0], 
-				point_pixels[0][1], 
-				point_pixels[1][0], 
-				point_pixels[0][1])
-			canvas.create_line(point_pixels[0][0], 
-				point_pixels[1][1], 
-				point_pixels[1][0],
-				point_pixels[1][1])
+			canvas.create_line(tl_x, tl_y, br_x, tl_y) 
+			canvas.create_line(tl_x, br_y, br_x, br_y)
 
 		elif self._pos == 'c':
-			canvas.create_line(point_pixels[0][0],
-				point_pixels[0][1],
-				point_pixels[0][0],
-				point_pixels[1][1])
-			canvas.create_line(point_pixels[1][0],
-				point_pixels[0][1],
-				point_pixels[1][0],
-				point_pixels[1][1])
-		center_x = (point_pixels[0][0] + point_pixels[1][0]) / 2
-		center_y = (point_pixels[0][1] + point_pixels[1][1]) / 2
+			canvas.create_line(tl_x, tl_y, tl_x, br_y)
+			canvas.create_line(br_x, tl_y, br_x, br_y)
+		center_x = (tl_x + br_x) / 2
+		center_y = (tl_y + br_y) / 2
 		
 		canvas.create_text(center_x, center_y, text = str(instr), font = 'times 12 bold')
 
@@ -259,78 +238,64 @@ class NonogramApplication:
 		self._BoardGUI._canvas.bind('<B1-Motion>', self._on_mouse_moved)
 		self._BoardGUI._canvas.bind('<Button-3>', self._on_rclick_down)
 		self._BoardGUI._canvas.bind('<B3-Motion>', self._on_rclick_held)
+	
 	def _on_canvas_resized(self, event: tk.Event):
 		self._BoardGUI._draw_board()
 
-
 	def _on_rclick_down(self, event: tk.Event):
-		if self._stop:
-			return
-
-		click_point = point.from_pixel(event.x, event.y, self._BoardGUI.width, self._BoardGUI.height)
-
-		for row in range(len(self._BoardGUI._tiles)):
-			for col in range(len(self._BoardGUI._tiles[row])):
-				tile = self._BoardGUI._tiles[row][col]
-				if tile.contains(click_point) and type(tile) is BoxGUI:
-					box = self._board._boxes[row][col]
-					self._xmode = not box.x()
-					box.switch_x()
-					if box.filled():
-						box.switch()
-					self._BoardGUI._draw_board()
+		self._switch_x(event.x, event.y, True)
 
 	def _on_rclick_held(self, event: tk.Event):
-		if self._stop:
-			return
-
-		click_point = point.from_pixel(event.x, event.y, self._BoardGUI.width, self._BoardGUI.height)
-
-		for row in range(len(self._BoardGUI._tiles)):
-			for col in range(len(self._BoardGUI._tiles[row])):
-				tile = self._BoardGUI._tiles[row][col]
-				if tile.contains(click_point) and type(tile) is BoxGUI:
-					box = self._board._boxes[row][col]
-					if box.x() != self._xmode:
-						 box.switch_x()
-					if box.x():
-						if box.filled():
-							box.switch()
-					self._BoardGUI._draw_board()
-			
+		self._switch_x(event.x, event.y, False)
+				
 	def _on_button_down(self, event: tk.Event):
-		if self._stop:
-			return
-		click_point = point.from_pixel(event.x,event.y, self._BoardGUI.width, self._BoardGUI.height)
-		for row in range(len(self._BoardGUI._tiles)):
-			for col in range(len(self._BoardGUI._tiles[row])):
-				tile = self._BoardGUI._tiles[row][col]
-				if tile.contains(click_point) and type(tile) is BoxGUI:
-					box = self._board._boxes[row][col]
-					self._mode = not box.filled() #true if filled, false if empty
-					box.switch()
-					self._BoardGUI._draw_board()
-		
-		self.update_solved()
+		self.switch_tile(event.x, event.y, True)
 
 	def _on_mouse_moved(self, event: tk.Event):
-		if self._stop:
-			return
-		self.switch_tile(event.x, event.y)
+		self.switch_tile(event.x, event.y, False)
 
 	def _back_button_pressed(self):
 		self._root_window.destroy()
 		run_nonogram()
 	
-	def switch_tile(self, x, y):
+
+	def _switch_x(self, x, y, checkState):
+		if self._stop:
+			return
+
+		click_point = point.from_pixel(x, y, self._BoardGUI.width, self._BoardGUI.height)
+
+		for row in range(len(self._BoardGUI._tiles)):
+			for col in range(len(self._BoardGUI._tiles[row])):
+				tile = self._BoardGUI._tiles[row][col]
+				if tile.contains(click_point) and type(tile) is BoxGUI:
+					box = self._board._boxes[row][col]
+					if checkState:
+						self._xmode = not box.x()
+						box.switch_x()
+					else:
+						if box.x() != self._xmode:
+							box.switch_x()
+					if box.filled():
+						box.switch()
+					self._BoardGUI._draw_board()
+
+
+	def switch_tile(self, x, y, checkState):
+		if self._stop:
+			return
 		mouse_point = point.from_pixel(x,y,self._BoardGUI.width, self._BoardGUI.height)
 		for row in range(len(self._BoardGUI._tiles)):
 			for col in range(len(self._BoardGUI._tiles[row])):
 				tile = self._BoardGUI._tiles[row][col]
 				if tile.contains(mouse_point) and type(tile) is BoxGUI:
 					box = self._board._boxes[row][col]
-					if box.filled() != self._mode:
+					if checkState:
+						self._mode = not box.filled()
 						box.switch()
+					else:
+						if box.filled() != self._mode:
+							box.switch()
 					self._BoardGUI._draw_board()
 
 		self.update_solved()

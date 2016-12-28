@@ -1,7 +1,7 @@
 import logic_components
 
 
-def change(color):
+def change(color) -> int:
 	if color == 0:
 		return 1
 	return 0

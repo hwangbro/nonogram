@@ -3,8 +3,11 @@ import tkinter as tk
 text_color = 'lightgoldenrod1'
 bg_color = 'skyblue3'
 button_bg = 'gold'
+
 class OptionMenu:
-	def __init__(self):
+	''' GUI for Option Menu '''
+
+	def __init__(self) -> None:
 		self._window = tk.Tk()
 		self._window.wm_title('Options Menu')
 		self._window.configure(background = bg_color)
@@ -51,14 +54,14 @@ class OptionMenu:
 
 		self._window.mainloop()		
 		
-	def _button_1(self):
+	def _button_1(self) -> None:
 		self.board = 'A'
 		self._window.destroy()
 	
-	def _button_2(self):
+	def _button_2(self) -> None:
 		self.board = 'B'
 		self._window.destroy()
 	
-	def _button_3(self):
+	def _button_3(self) -> None:
 		self.board = 'C'
 		self._window.destroy()
