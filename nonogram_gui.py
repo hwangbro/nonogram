@@ -3,6 +3,7 @@ import logic_components
 import point
 import boards
 import options_gui
+from box import BoxGUI, InstructionGUI, create_box_points
 
 
 title_color = 'SkyBlue3'
@@ -12,91 +13,11 @@ text_color = 'lightgoldenrod1'
 fill_color = 'black'
 blank_color = 'white'
 
-class BoxGUI:
-	'''GUI for box'''
-
-	def __init__(self, row: int, col: int) -> None:
-		self._row = row
-		self._col = col
-		self._tl, self._br = None,None
-		self._filled = False
-
-	def contains(self, p: point.Point) -> (point.Point):
-		px,py = p.frac()
-		tl_x, tl_y = self._tl.frac()
-		br_x, br_y = self._br.frac()
-		return (px <= br_x and px >= tl_x) and (py <= br_y and py >= tl_y)
-	
-	def draw(self, canvas: tk.Canvas, points) -> None:
-		self._tl, self._br = points
-		
-		width = canvas.winfo_width()
-		height = canvas.winfo_height()
-		self._tl_x, self._tl_y = self._tl.pixel(width, height)
-		self._br_x, self._br_y = self._br.pixel(width, height)
-
-		self._rect = canvas.create_rectangle(self._tl_x, self._tl_y,
-							self._br_x, self._br_y,
-							fill = blank_color)
-
-	def fill(self, canvas: tk.Canvas) -> None:
-		canvas.itemconfig(self._rect, fill = fill_color)
-		self._filled = True
-
-	def unfill(self, canvas: tk.Canvas) -> None:
-		canvas.itemconfig(self._rect, fill = blank_color)
-		self._filled = False
-	
-	def x(self, canvas: tk.Canvas) -> None:
-		canvas.create_line(self._tl_x, self._tl_y, self._br_x, self._br_y, width = 3)
-		canvas.create_line(self._tl_x, self._br_y, self._br_x, self._tl_y, width = 3)
-
-
-class InstructionGUI(BoxGUI):
-	'''GUI for instruction'''
-	
-	def __init__(self, row: int, col: int, pos: str) -> None:
-		#pos is 'r' for row, 'c' for col
-		super().__init__(row,col)
-		self._pos = pos
-
-	def draw(self, canvas: tk.Canvas, points, instr: int) -> None:
-		self._tl, self._br = points
-
-		width = canvas.winfo_width()
-		height = canvas.winfo_height()
-
-		tl_x, tl_y = self._tl.pixel(width, height)
-		br_x, br_y = self._br.pixel(width, height)
-
-		if self._pos == 'r':
-			canvas.create_line(tl_x, tl_y, br_x, tl_y) 
-			canvas.create_line(tl_x, br_y, br_x, br_y)
-
-		elif self._pos == 'c':
-			canvas.create_line(tl_x, tl_y, tl_x, br_y)
-			canvas.create_line(br_x, tl_y, br_x, br_y)
-		center_x = (tl_x + br_x) / 2
-		center_y = (tl_y + br_y) / 2
-		
-		canvas.create_text(center_x, center_y, text = str(instr), font = 'times 12 bold')
-
-
-
-def create_box_points(row,col,total_row,total_col) -> (point.Point):
-	'''Returns the top-left and bottom-right points of box'''
-
-	buf = .95
-	x = buf/total_col
-	y = buf/total_row
-	pad = (1-buf)/2
-	return (point.from_frac(pad+(x*col), pad+(y*row)),
-		point.from_frac(pad+(x*(col+1)), pad+(y*(row+1))))
 
 class NonogramGUI:
 	'''GUI for game board itself'''
 
-	def __init__(self, window: tk.Tk, board: logic_components.Board):
+	def __init__(self, window: tk.Tk, board: logic_components.Board) -> None:
 		self._window = window
 		self._board = board
 		self._tiles = []
@@ -113,12 +34,9 @@ class NonogramGUI:
 				sticky = tk.N + tk.W + tk.S + tk.E)
 		self._window.rowconfigure(1, weight = 1)
 		self._window.columnconfigure(0, weight = 1)	
-	
-	def _draw_tiles(self):
-		self._tiles = []
-		self.width = self._canvas.winfo_width()
-		self.height = self._canvas.winfo_height()
 
+	def _draw_row_instr(self) -> None:
+		''' Draws the row instructions on the board '''
 		for i in range(len(self._board.rowinstr())):
 			for j in range(len(self._board.rowinstr()[i])):
 				row = self._board.maxcinstr()+i
@@ -126,7 +44,9 @@ class NonogramGUI:
 				cell = InstructionGUI(row,col,'r')
 				cell.draw(self._canvas,
 					create_box_points(row,col,self._rows, self._cols),self._board.rowinstr()[i][j])
-		
+	
+	def _draw_col_instr(self) -> None:
+		''' Draws the column instructions on the board '''
 		for i in range(len(self._board.colinstr())):
 			for j in range(len(self._board.colinstr()[i])):
 				row = self._board.maxcinstr() - len(self._board.colinstr()[i]) + j
@@ -134,6 +54,9 @@ class NonogramGUI:
 				cell = InstructionGUI(row,col,'c')
 				cell.draw(self._canvas,
 					create_box_points(row,col, self._rows, self._cols),self._board.colinstr()[i][j])
+			
+	def _draw_boxes(self) -> None:
+		''' Draws the rest of the board '''
 		for i in range(self._board.rows()):
 			self._tiles.append([])
 			for j in range(self._board.cols()):
@@ -141,31 +64,33 @@ class NonogramGUI:
 				self._tiles[i].append(cell)
 				row, col = self._board.trueIndex(i,j)
 				cell.draw(self._canvas,
-					create_box_points(row, col, self._rows, self._cols))
-				cell.unfill(self._canvas)
+					create_box_points(row, col, self._rows, self._cols)) #draws based on location respecting instructions
 				if self._board._boxes[i][j].x():
 					cell.x(self._canvas)
 				elif self._board._boxes[i][j].filled():
 					cell.fill(self._canvas)
 
-	def _draw_lines(self):
-		for i in range(len(self._board.rowinstr())):
+	def _draw_tiles(self) -> None:
+		''' Draws all the tiles on the board '''
+		self._tiles = []
+		self.width = self._canvas.winfo_width()
+		self.height = self._canvas.winfo_height()
+
+		self._draw_row_instr()
+		self._draw_col_instr()
+		self._draw_boxes()
+
+	def _draw_lines(self) -> None:
+		''' Draws the lines on the board '''
+		for i in range(len(self._board.rowinstr())+1):
 			start = create_box_points(self._board.maxcinstr() + i, 0, self._rows, self._cols)
 			end = create_box_points(self._board.maxcinstr() + i, self._cols-1, self._rows, self._cols)
-
 			start_x, start_y = start[0].pixel(self.width, self.height)
 			end_x = end[1].pixel(self.width, self.height)[0]
-			w = 3 if (i==0 or i%5 == 0) else 1
+			w = 3 if (i==0 or i%5 == 0) else 1 #if it's a multiple of 5, bold
 			self._canvas.create_line(start_x, start_y, end_x, start_y, fill = 'gray', width = w)
 
-		start = create_box_points(self._rows, 0, self._rows, self._cols)
-		end = create_box_points(self._rows, self._cols-1, self._rows, self._cols)
-		start_x,start_y = start[0].pixel(self.width, self.height)		
-		end_x = end[1].pixel(self.width, self.height)[0]
-		w = 3 if (self._board.rows() % 5 == 0) else 1
-		self._canvas.create_line(start_x, start_y, end_x, start_y, width = w, fill = 'gray')
-
-		for i in range(len(self._board.colinstr())):
+		for i in range(len(self._board.colinstr())+1):
 			start = create_box_points(0, self._board.maxrinstr()+i, self._rows, self._cols)
 			end = create_box_points(self._rows-1, self._board.maxrinstr()+i, self._rows, self._cols)
 			start_x, start_y = start[0].pixel(self.width, self.height)
@@ -173,14 +98,8 @@ class NonogramGUI:
 			w = 3 if (i == 0 or i % 5 == 0) else 1
 			self._canvas.create_line(start_x, start_y, start_x, end_y, fill = 'gray', width = w)
 	
-		start = create_box_points(0, self._cols, self._rows, self._cols)
-		end = create_box_points(self._rows-1, self._cols, self._rows, self._cols)
-		start_x, start_y = start[0].pixel(self.width, self.height)
-		end_y = end[1].pixel(self.width, self.height)[1]
-		w = 3 if (self._board.cols() % 5 == 0) else 1
-		self._canvas.create_line(start_x, start_y, start_x, end_y, fill = 'gray', width = w)
-
-	def _draw_board(self):
+	def _draw_board(self) -> None:
+		''' Call this to draw the entire board '''
 		self._canvas.delete(tk.ALL)
 		self._draw_tiles()
 		self._draw_lines()
@@ -188,8 +107,9 @@ class NonogramGUI:
 class NonogramApplication:
 	'''Will start the entire application'''
 
-	def __init__(self, board: logic_components.Board):
+	def __init__(self, board: logic_components.Board) -> None: 
 		self._board = board
+		self._stop = False
 		self._root_window = tk.Tk()
 		self._root_window.wm_title('Monigram!')
 		self._root_window.minsize(700,700)
@@ -231,35 +151,43 @@ class NonogramApplication:
 		label_frame.columnconfigure(0, weight = 1)
 		label_frame.columnconfigure(1, weight = 1)
 		label_frame.columnconfigure(2, weight = 1)
-		self._stop = False
+
 		self._BoardGUI = NonogramGUI(self._root_window, self._board)
+
 		self._BoardGUI._canvas.bind('<Configure>', self._on_canvas_resized)
 		self._BoardGUI._canvas.bind('<Button-1>', self._on_button_down)
 		self._BoardGUI._canvas.bind('<B1-Motion>', self._on_mouse_moved)
 		self._BoardGUI._canvas.bind('<Button-3>', self._on_rclick_down)
 		self._BoardGUI._canvas.bind('<B3-Motion>', self._on_rclick_held)
 	
-	def _on_canvas_resized(self, event: tk.Event):
+	def _on_canvas_resized(self, event: tk.Event) -> None:
+		''' Re-draw the board when resized '''
 		self._BoardGUI._draw_board()
 
-	def _on_rclick_down(self, event: tk.Event):
+	def _on_rclick_down(self, event: tk.Event) -> None:
+		''' On right click, draw an X '''
 		self._switch_x(event.x, event.y, True)
 
-	def _on_rclick_held(self, event: tk.Event):
+	def _on_rclick_held(self, event: tk.Event) -> None:
+		''' On right click held, either draw or erase X's depending on first state '''
 		self._switch_x(event.x, event.y, False)
 				
-	def _on_button_down(self, event: tk.Event):
+	def _on_button_down(self, event: tk.Event) -> None:
+		''' On left click, fill/unfill '''
 		self.switch_tile(event.x, event.y, True)
 
-	def _on_mouse_moved(self, event: tk.Event):
+	def _on_mouse_moved(self, event: tk.Event) -> None:
+		''' On left click held, either fill or unfill X's depending on first state '''
 		self.switch_tile(event.x, event.y, False)
 
-	def _back_button_pressed(self):
+	def _back_button_pressed(self) -> None:
+		''' Go back to main menu '''
 		self._root_window.destroy()
 		run_nonogram()
 	
 
-	def _switch_x(self, x, y, checkState):
+	def _switch_x(self, x, y, checkState) -> None:
+		''' Flip the X status of a box '''
 		if self._stop:
 			return
 
@@ -273,15 +201,15 @@ class NonogramApplication:
 					if checkState:
 						self._xmode = not box.x()
 						box.switch_x()
-					else:
-						if box.x() != self._xmode:
-							box.switch_x()
+					elif box.x() != self._xmode:
+						box.switch_x()
 					if box.filled():
 						box.switch()
 					self._BoardGUI._draw_board()
 
 
-	def switch_tile(self, x, y, checkState):
+	def switch_tile(self, x, y, checkState) -> None:
+		''' Flip the fill status of a box '''
 		if self._stop:
 			return
 		mouse_point = point.from_pixel(x,y,self._BoardGUI.width, self._BoardGUI.height)
@@ -293,20 +221,20 @@ class NonogramApplication:
 					if checkState:
 						self._mode = not box.filled()
 						box.switch()
-					else:
-						if box.filled() != self._mode:
-							box.switch()
+					elif box.filled() != self._mode:
+						box.switch()
 					self._BoardGUI._draw_board()
 
 		self.update_solved()
 
-	def update_solved(self):
+	def update_solved(self) -> None:
+		''' Checks if board is solved. If solved, changes sovled text, freezes board '''
 		if self._board.checkIfSolved():
 			self._solved.set('Solved!!')
 			self._solved_label.config(background = title_color, foreground = 'green', font = 'times 20 bold')
 			self._stop = True
 
-	def start(self):
+	def start(self) -> None:
 		self._root_window.mainloop()
 
 def run_nonogram():
