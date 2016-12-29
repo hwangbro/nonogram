@@ -244,7 +244,7 @@ def run_nonogram():
 		elif (b == 'B'):
 			game_board = boards.boardB()
 		else:
-			game_board = boards.boardC()
+			game_board = boards.boardD()
 		app = NonogramApplication(game_board)
 		app.start()
 	except:

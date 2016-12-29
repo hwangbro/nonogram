@@ -124,6 +124,46 @@ def boardC():
 			index += streak
 	return logic_components.Board(r, c, rinstr, cinstr, bsol)
 
+def boardD():
+	bsol = []
+	r = 15
+	c = 15
+
+	rinstr = [[3], [4,2], [6,6], [6,2,1], [1,4,2,1], [6,3,2], [6,7], [6,8],[1,10], [1,10], [1,10], [1,1,4,4], [3,4,4], [4,4], [4,4]]
+	cinstr = [[1], [11], [3,3,1], [7,2], [7], [15], [1,5,7], [2,8], [14], [9], [1,6], [1,9], [1,9], [1,10], [12]]
+
+	intsol = [[0,[5,3,7]],
+	[0,[2,4,1,2,6]],
+	[0,[1,6,1,6,1]],
+	[0,[1,6,1,2,4,1]],
+	[0,[1,1,1,4,1,2,4,1]],
+	[0,[1,6,1,3,2,2]],
+	[0,[1,6,1,7]],
+	[1,[6,1,8]],
+	[0,[1,1,3,10]],
+	[0,[1,1,3,10]],
+	[0,[1,1,3,10]],
+	[0,[1,1,1,1,1,4,2,4]],
+	[0,[1,3,1,4,2,4]],
+	[0,[5,4,2,4]],
+	[0,[5,4,2,4]]]
+
+	for row in range(r):
+		bsol.append([])
+		color = intsol[row][0]
+		changes = intsol[row][1]
+		index = 0
+		for streak in changes:
+			for i in range(index, index+streak):
+				if color == 1:
+					bsol[row].append(True)
+				if color == 0:
+					bsol[row].append(False)
+			color = change(color)
+			index += streak
+	return logic_components.Board(r, c, rinstr, cinstr, bsol)
+
+
 
 def test():
 	A = boardA()
@@ -135,5 +175,15 @@ def test2():
 	c = boardC()
 	print(c.rows(), c.cols())
 
+def test3():
+	d = boardD()
+	print(d.rows(), d.cols())
+	print("this should be 15,15")
+	print(len(d.rowinstr()), len(d.colinstr()))
+	print("this should be 15,15")
+	for i in d.solution():
+		print(len(i))
+	print("These should all equal 15")
+
 if __name__ == '__main__':
-	test2()
+	test3()
