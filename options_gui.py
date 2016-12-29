@@ -47,6 +47,25 @@ class OptionMenu:
 
 		self._puzzle_3.grid(row=1,column=2,padx=10,pady=10,
 				sticky = tk.N + tk.S + tk.W + tk.E)
+		
+		self._puzzle_4 = tk.Button(master = self._window,
+					text = 'Puzzle 4!',
+					font = 'times 16 bold',
+					background = button_bg,
+					command = self._button_4)
+
+		self._puzzle_4.grid(row=2,column=0,padx=10,pady=10,
+				sticky = tk.N + tk.S + tk.W + tk.E)
+
+		self._puzzle_5 = tk.Button(master = self._window,
+					text = 'Puzzle 5!',
+					font = 'times 16 bold',
+					background = button_bg,
+					command = self._button_5)
+
+		self._puzzle_5.grid(row=2, column=1,padx=10,pady=10,
+				sticky = tk.N + tk.S + tk.W + tk.E)
+
 	
 		self._window.columnconfigure(0, weight=1)
 		self._window.columnconfigure(0, weight=1)
@@ -64,4 +83,12 @@ class OptionMenu:
 	
 	def _button_3(self) -> None:
 		self.board = 'C'
+		self._window.destroy()
+
+	def _button_4(self) -> None:
+		self.board = 'D'
+		self._window.destroy()
+
+	def _button_5(self) -> None:
+		self.board = 'E'
 		self._window.destroy()

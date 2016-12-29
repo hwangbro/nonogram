@@ -243,8 +243,12 @@ def run_nonogram():
 			game_board = boards.boardA()
 		elif (b == 'B'):
 			game_board = boards.boardB()
-		else:
+		elif (b == 'C'):
+			game_board = boards.boardC()
+		elif (b == 'D'):
 			game_board = boards.boardD()
+		elif (b == 'E'):
+			game_board = boards.boardE()
 		app = NonogramApplication(game_board)
 		app.start()
 	except:
