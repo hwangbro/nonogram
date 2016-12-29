@@ -59,10 +59,8 @@ class BoxGUI:
 class InstructionGUI(BoxGUI):
 	'''GUI for instruction'''
 	
-	def __init__(self, row: int, col: int, pos: str) -> None:
-		#pos is 'r' for row, 'c' for col
+	def __init__(self, row: int, col: int) -> None:
 		super().__init__(row,col)
-		self._pos = pos
 
 	def draw(self, canvas: tk.Canvas, points, instr: int) -> None:
 		''' Draws the instruction box onto the canvas '''
@@ -74,13 +72,6 @@ class InstructionGUI(BoxGUI):
 		tl_x, tl_y = self._tl.pixel(width, height)
 		br_x, br_y = self._br.pixel(width, height)
 
-		if self._pos == 'r':
-			canvas.create_line(tl_x, tl_y, br_x, tl_y) 
-			canvas.create_line(tl_x, br_y, br_x, br_y)
-
-		elif self._pos == 'c':
-			canvas.create_line(tl_x, tl_y, tl_x, br_y)
-			canvas.create_line(br_x, tl_y, br_x, br_y)
 		center_x = (tl_x + br_x) / 2
 		center_y = (tl_y + br_y) / 2
 		
@@ -88,7 +79,7 @@ class InstructionGUI(BoxGUI):
 
 
 
-def create_box_points(row,col,total_row,total_col) -> (point.Point):
+def create_box_points(row: int, col: int, total_row: int, total_col: int) -> (point.Point):
 	'''Returns the top-left and bottom-right points of box'''
 
 	buf = .95

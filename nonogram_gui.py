@@ -7,9 +7,7 @@ from box import BoxGUI, InstructionGUI, create_box_points
 
 
 title_color = 'SkyBlue3'
-
 text_color = 'lightgoldenrod1'
-
 fill_color = 'black'
 blank_color = 'white'
 
@@ -41,7 +39,7 @@ class NonogramGUI:
 			for j in range(len(self._board.rowinstr()[i])):
 				row = self._board.maxcinstr()+i
 				col = self._board.maxrinstr() - len(self._board.rowinstr()[i])+j
-				cell = InstructionGUI(row,col,'r')
+				cell = InstructionGUI(row,col)
 				cell.draw(self._canvas,
 					create_box_points(row,col,self._rows, self._cols),self._board.rowinstr()[i][j])
 	
@@ -51,7 +49,7 @@ class NonogramGUI:
 			for j in range(len(self._board.colinstr()[i])):
 				row = self._board.maxcinstr() - len(self._board.colinstr()[i]) + j
 				col = self._board.maxrinstr()+i
-				cell = InstructionGUI(row,col,'c')
+				cell = InstructionGUI(row,col)
 				cell.draw(self._canvas,
 					create_box_points(row,col, self._rows, self._cols),self._board.colinstr()[i][j])
 			
@@ -186,7 +184,7 @@ class NonogramApplication:
 		run_nonogram()
 	
 
-	def _switch_x(self, x, y, checkState) -> None:
+	def _switch_x(self, x: int, y: int, checkState: bool) -> None:
 		''' Flip the X status of a box '''
 		if self._stop:
 			return
@@ -208,7 +206,7 @@ class NonogramApplication:
 					self._BoardGUI._draw_board()
 
 
-	def switch_tile(self, x, y, checkState) -> None:
+	def switch_tile(self, x: int, y: int, checkState: bool) -> None:
 		''' Flip the fill status of a box '''
 		if self._stop:
 			return
